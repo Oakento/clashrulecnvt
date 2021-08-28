@@ -39,7 +39,12 @@ func parseRule(rulesets map[string]RuleSet, rawRules []string) []string {
 		suffixes := "," + ruleentities[i].strategy
 		var newSwapRules []string
 		for _, v := range swapRules {
-			newSwapRules = append(newSwapRules, prefix+v+suffixes)
+			if strings.HasSuffix(v, "no-resolve") {
+				v = v[0 : len(v)-len(",no-resolve")]
+				newSwapRules = append(newSwapRules, prefix+v+suffixes+",no-resolve")
+			} else {
+				newSwapRules = append(newSwapRules, prefix+v+suffixes)
+			}
 		}
 		newRules = append(leftRules, newSwapRules...)
 		newRules = append(newRules, rightRules...)
