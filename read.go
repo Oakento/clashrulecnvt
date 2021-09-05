@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Conf struct {
+type ClashConf struct {
 	RuleProviders map[string]map[string]interface{} `yaml:"rule-providers"`
 	Rules         []string                          `yaml:"rules"`
 }
@@ -21,21 +21,24 @@ type RuleProvider struct {
 	url      string
 }
 
-func readConf(input string) ([]RuleProvider, []string, map[string]interface{}) {
+func readClashConf(input string) ([]RuleProvider, []string, map[string]interface{}) {
 
 	yamlFile, err := ioutil.ReadFile(input)
 	if err != nil {
 		log.Printf("Error occurred while reading input file: %v", err)
+		os.Exit(1)
 	}
-	var conf Conf
+	var conf ClashConf
 	var fullConf map[string]interface{}
 	err = yaml.Unmarshal(yamlFile, &conf)
 	if err != nil {
-		log.Panicf("Error occurred while reading input file: %v", err)
+		log.Printf("Error occurred while reading input file: %v", err)
+		os.Exit(1)
 	}
 	err = yaml.Unmarshal(yamlFile, &fullConf)
 	if err != nil {
-		log.Panicf("Error occurred while reading input file: %v", err)
+		log.Printf("Error occurred while reading input file: %v", err)
+		os.Exit(1)
 	}
 	ruleProviders := conf.RuleProviders
 	// ruleProviders := fullConf["rule-providers"].(map[string]map[string]interface{})

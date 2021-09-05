@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -20,6 +21,7 @@ func fetchProvider(provider RuleProvider, ch chan RuleSet) {
 		if err != nil {
 			ch <- RuleSet{name: provider.name, Payload: nil, behavior: ""}
 			log.Printf("Error occurred while reading local rule file: %v", err)
+			return
 		}
 		rule.name = provider.name
 		rule.behavior = provider.behavior
@@ -28,10 +30,11 @@ func fetchProvider(provider RuleProvider, ch chan RuleSet) {
 	} else if provider.ptype == "http" {
 		var client *http.Client
 		if HTTP_PROXY != "" {
-			log.Printf("Start fetching remote data through http_proxy: %v", provider.url)
+			log.Printf("Start fetching remote data through proxy: %v", provider.url)
 			proxyURL, err := url.Parse(HTTP_PROXY)
 			if err != nil {
-				log.Panic("Having problem parsing http_proxy")
+				log.Println("Having problem parsing proxy")
+				os.Exit(1)
 			}
 			client = &http.Client{
 				Transport: &http.Transport{
@@ -58,17 +61,20 @@ func fetchProvider(provider RuleProvider, ch chan RuleSet) {
 		if err != nil {
 			ch <- RuleSet{name: provider.name, Payload: nil, behavior: ""}
 			log.Printf("Failed to fetch remote rule data: %v", provider.url)
+			return
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Panicf("Error occurred while fetching remote data: %v", err)
+			return
 		}
 		var rule RuleSet
 		err = yaml.Unmarshal(body, &rule)
 		if err != nil {
 			ch <- RuleSet{name: provider.name, Payload: nil, behavior: ""}
-			log.Panicf("Error occurred while fetching remote data: %v", err)
+			log.Printf("Error occurred while interpreting remote data: %v", err)
+			return
 		}
 		rule.name = provider.name
 		rule.behavior = provider.behavior
