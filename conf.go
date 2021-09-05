@@ -24,7 +24,6 @@ func initConf(conf Conf) {
 		}
 
 		confYAML, err := yaml.Marshal(&conf)
-		log.Println(string(confYAML))
 		if err != nil {
 			log.Println("Wrong format of configuration.")
 			os.Exit(1)
